@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guess the Number Game</title>
@@ -10,6 +8,7 @@
             --secondary: #a29bfe;
             --success: #00b894;
             --danger: #d63031;
+            --warning: #fdcb6e;
             --light: #f8f9fa;
             --dark: #343a40;
             --border-radius: 12px;
@@ -59,6 +58,51 @@
             margin-bottom: 30px;
             opacity: 0.8;
             font-size: 1.1rem;
+        }
+        
+        .settings {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .setting-label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--dark);
+        }
+        
+        select, .hint-toggle {
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            border: 2px solid #e0e0e0;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        select:focus, .hint-toggle:focus {
+            border-color: var(--primary);
+        }
+        
+        .hint-toggle {
+            background-color: var(--secondary);
+            color: white;
+            cursor: pointer;
+            border: none;
+            padding: 10px 20px;
+        }
+        
+        .hint-toggle.active {
+            background-color: var(--primary);
         }
         
         .game-area {
@@ -159,6 +203,18 @@
             animation: celebrate 0.5s ease;
         }
         
+        .close {
+            background-color: rgba(0, 184, 148, 0.3);
+            color: var(--success);
+            display: block;
+        }
+        
+        .very-close {
+            background-color: rgba(0, 184, 148, 0.5);
+            color: var(--success);
+            display: block;
+        }
+        
         @keyframes celebrate {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
@@ -214,11 +270,24 @@
             }
         }
     </style>
-</head>
+<script defer="" data-domain="canyouguessright.tiiny.site" src="https://analytics.tiiny.site/js/plausible.js"></script><script type="text/javascript" src="https://tiiny.host/ad-script.js"></script><script defer="" data-domain="canyouguessright.tiiny.site" src="https://analytics.tiiny.site/js/plausible.js"></script><script type="text/javascript" src="https://tiiny.host/ad-script.js"></script></head>
 <body>
     <div class="game-container">
         <h1>🎮 Guess the Number</h1>
-        <p class="subtitle">Try to guess the secret number between 1 and 100</p>
+        <p class="subtitle">Try to guess the secret number between 1 and your selected range</p>
+        
+        <div class="settings">
+            <div class="setting-group">
+                <label class="setting-label">Difficulty Level</label>
+                <select id="difficulty">
+                    <option value="50">Easy (1-50)</option>
+                    <option value="100" selected="">Medium (1-100)</option>
+                    <option value="500">Hard (1-500)</option>
+                    <option value="1000">Expert (1-1000)</option>
+                </select>
+            </div>
+            <button class="hint-toggle" id="hintToggle">Hints: OFF</button>
+        </div>
         
         <div class="game-area">
             <div class="previous-guesses" id="previousGuesses">
@@ -226,7 +295,7 @@
             </div>
             
             <div class="input-group">
-                <input type="number" id="guessInput" placeholder="Enter your guess..." min="1" max="100">
+                <input type="number" id="guessInput" placeholder="Enter your guess..." min="1">
                 <button id="guessButton">Guess</button>
             </div>
             
@@ -240,27 +309,66 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            let secretNumber = Math.floor(Math.random() * 100) + 1;
+            let secretNumber;
             let attempts = 0;
             let previousGuesses = [];
+            let maxNumber = 100;
+            let hintsEnabled = false;
+            
             const guessInput = document.getElementById('guessInput');
             const guessButton = document.getElementById('guessButton');
             const resetButton = document.getElementById('resetButton');
+            const hintToggle = document.getElementById('hintToggle');
+            const difficultySelect = document.getElementById('difficulty');
             const message = document.getElementById('message');
             const attemptsDisplay = document.getElementById('attempts');
             const previousGuessesDisplay = document.getElementById('previousGuesses');
             
+            // Initialize game
+            initGame();
+            
+            // Event listeners
             guessButton.addEventListener('click', checkGuess);
-            resetButton.addEventListener('click', resetGame);
+            resetButton.addEventListener('click', initGame);
+            hintToggle.addEventListener('click', toggleHints);
+            difficultySelect.addEventListener('change', initGame);
             guessInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') checkGuess();
             });
             
+            function initGame() {
+                maxNumber = parseInt(difficultySelect.value);
+                secretNumber = Math.floor(Math.random() * maxNumber) + 1;
+                attempts = 0;
+                previousGuesses = [];
+                attemptsDisplay.textContent = `Attempts: 0`;
+                message.textContent = '';
+                message.className = 'message';
+                previousGuessesDisplay.innerHTML = '';
+                guessInput.disabled = false;
+                guessButton.disabled = false;
+                resetButton.style.display = 'none';
+                guessInput.min = 1;
+                guessInput.max = maxNumber;
+                guessInput.placeholder = `Enter your guess (1-${maxNumber})...`;
+                guessInput.value = '';
+                guessInput.focus();
+                
+                // Remove any remaining confetti
+                document.querySelectorAll('.confetti').forEach(el => el.remove());
+            }
+            
             function checkGuess() {
                 const guess = parseInt(guessInput.value);
                 
-                if (isNaN(guess) || guess < 1 || guess > 100) {
-                    message.textContent = 'Please enter a valid number between 1 and 100';
+                if (isNaN(guess)) {
+                    message.textContent = 'Please enter a valid number';
+                    message.className = 'message low';
+                    return;
+                }
+                
+                if (guess < 1 || guess > maxNumber) {
+                    message.textContent = `Please enter a number between 1 and ${maxNumber}`;
                     message.className = 'message low';
                     return;
                 }
@@ -276,10 +384,32 @@
                 updatePreviousGuessesDisplay();
                 
                 if (guess < secretNumber) {
-                    message.textContent = 'Too low! Try a higher number.';
+                    if (hintsEnabled) {
+                        const difference = secretNumber - guess;
+                        if (difference > (maxNumber * 0.5)) {
+                            message.textContent = 'WAY too low!';
+                        } else if (difference > (maxNumber * 0.2)) {
+                            message.textContent = 'Too low!';
+                        } else {
+                            message.textContent = 'Just a bit low!';
+                        }
+                    } else {
+                        message.textContent = 'Too low!';
+                    }
                     message.className = 'message low';
                 } else if (guess > secretNumber) {
-                    message.textContent = 'Too high! Try a lower number.';
+                    if (hintsEnabled) {
+                        const difference = guess - secretNumber;
+                        if (difference > (maxNumber * 0.5)) {
+                            message.textContent = 'WAY too high!';
+                        } else if (difference > (maxNumber * 0.2)) {
+                            message.textContent = 'Too high!';
+                        } else {
+                            message.textContent = 'Just a bit high!';
+                        }
+                    } else {
+                        message.textContent = 'Too high!';
+                    }
                     message.className = 'message high';
                 } else {
                     message.textContent = `🎉 Correct! You guessed it in ${attempts} attempts!`;
@@ -290,25 +420,28 @@
                     createConfetti();
                 }
                 
+                // Add proximity hints if enabled
+                if (hintsEnabled && guess !== secretNumber) {
+                    const difference = Math.abs(secretNumber - guess);
+                    const range = maxNumber;
+                    
+                    if (difference <= (range * 0.05)) { // Very close (5% of range)
+                        message.textContent += " 🔥 VERY CLOSE!";
+                        message.className = 'message very-close';
+                    } else if (difference <= (range * 0.15)) { // Close (15% of range)
+                        message.textContent += " 🔥 Close!";
+                        message.className = 'message close';
+                    }
+                }
+                
                 guessInput.value = '';
                 guessInput.focus();
             }
             
-            function resetGame() {
-                secretNumber = Math.floor(Math.random() * 100) + 1;
-                attempts = 0;
-                previousGuesses = [];
-                attemptsDisplay.textContent = `Attempts: 0`;
-                message.textContent = '';
-                message.className = 'message';
-                previousGuessesDisplay.innerHTML = '';
-                guessInput.disabled = false;
-                guessButton.disabled = false;
-                resetButton.style.display = 'none';
-                guessInput.focus();
-                
-                // Remove any remaining confetti
-                document.querySelectorAll('.confetti').forEach(el => el.remove());
+            function toggleHints() {
+                hintsEnabled = !hintsEnabled;
+                hintToggle.textContent = hintsEnabled ? 'Hints: ON' : 'Hints: OFF';
+                hintToggle.classList.toggle('active', hintsEnabled);
             }
             
             function updatePreviousGuessesDisplay() {
@@ -345,5 +478,5 @@
             }
         });
     </script>
-</body>
-</html>
+
+</body></html>
