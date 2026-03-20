@@ -3,286 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Guessing Game</title>
+    <title>RED & YELLOW ARCADE</title>
     <style>
         :root {
-            --primary: #6c5ce7;
-            --accent: #00cec9;
-            --success: #00b894;
-            --danger: #ff7675;
-            --bg: #0f172a;
-            --card-bg: rgba(255, 255, 255, 0.05);
-            --text: #f8f9fa;
+            --red: #d63031;
+            --dark-red: #ae2012;
+            --yellow: #feca57;
+            --light-yellow: #fffae6;
+            --dark: #2d3436;
+            --white: #ffffff;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial Black', sans-serif; }
 
         body {
-            background-color: var(--bg);
-            background-image: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background-color: var(--yellow);
+            background-image: radial-gradient(var(--light-yellow) 20%, transparent 20%),
+                              radial-gradient(var(--light-yellow) 20%, transparent 20%);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            color: var(--dark);
             padding: 20px;
+            min-height: 100vh;
         }
 
-        .container {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 40px;
-            width: 100%;
-            max-width: 450px;
+        .header {
             text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            background: var(--red);
+            color: var(--yellow);
+            padding: 20px;
+            border: 6px solid var(--dark);
+            box-shadow: 10px 10px 0px var(--dark);
+            margin-bottom: 40px;
         }
 
-        h1 { font-size: 2rem; margin-bottom: 8px; letter-spacing: -1px; }
-        .stats-row { display: flex; justify-content: space-between; margin-bottom: 25px; font-size: 0.9rem; color: #94a3b8; }
+        .arcade-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-        /* Progress Bar */
-        .health-bar-container {
+        .game-card {
+            background: var(--white);
+            border: 4px solid var(--dark);
+            box-shadow: 8px 8px 0px var(--dark);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            transition: transform 0.2s;
+        }
+
+        .game-card:hover { transform: translate(-4px, -4px); box-shadow: 12px 12px 0px var(--dark); }
+
+        .game-title {
+            background: var(--red);
+            color: var(--white);
+            padding: 5px 10px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            border: 2px solid var(--dark);
+        }
+
+        /* Common Elements */
+        input, select {
+            padding: 10px;
+            border: 3px solid var(--dark);
+            font-size: 1rem;
             width: 100%;
-            height: 8px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            margin-bottom: 25px;
-            overflow: hidden;
         }
-        #healthBar {
-            height: 100%;
-            width: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            transition: width 0.4s ease;
-        }
-
-        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        
-        select, input {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            padding: 12px;
-            border-radius: 12px;
-            outline: none;
-            width: 100%;
-        }
-
-        .input-wrapper { display: flex; gap: 8px; margin-bottom: 20px; }
-        input[type="number"] { font-size: 1.2rem; text-align: center; }
 
         button {
-            padding: 12px 20px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 600;
+            padding: 12px;
+            background: var(--red);
+            color: var(--white);
+            border: 3px solid var(--dark);
             cursor: pointer;
-            transition: all 0.2s;
+            font-weight: bold;
+            text-transform: uppercase;
         }
 
-        #guessBtn { background: var(--primary); color: white; flex-grow: 1; }
-        #guessBtn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4); }
+        button:hover { background: var(--dark-red); }
         
-        .hint-btn { background: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; }
-        .hint-btn.active { background: var(--accent); color: var(--bg); }
+        .reset-btn { background: var(--dark); color: var(--yellow); margin-top: 5px; }
 
-        .message-box {
-            min-height: 60px;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-weight: 500;
-            transition: all 0.3s;
+        .display-area {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border: 2px dashed var(--red);
+            font-size: 0.9rem;
+            padding: 10px;
+            background: var(--light-yellow);
         }
 
-        .error-shake { animation: shake 0.4s; background: rgba(255, 118, 117, 0.1); color: var(--danger); }
-        .success-glow { background: rgba(0, 184, 148, 0.1); color: var(--success); }
+        /* Reaction Game Special */
+        #reactionBox { height: 100px; background: var(--dark); cursor: pointer; color: white; transition: 0s; }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-8px); }
-            75% { transform: translateX(8px); }
-        }
-
-        #resetBtn { 
-            background: var(--danger); color: white; width: 100%; 
-            display: none; margin-top: 10px;
-        }
-
-        .history { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
-        .history-item { 
-            width: 40px; height: 40px; line-height: 40px; 
-            background: rgba(255,255,255,0.05); border-radius: 50%; font-size: 0.8rem; 
-        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Guess It.</h1>
-    <div class="stats-row">
-        <span>Best Score: <b id="bestScore">--</b></span>
-        <span>Attempts: <b id="attemptCount">0</b></span>
-    </div>
+<div class="header">
+    <h1>🔥 RED & YELLOW MEGA ARCADE 🔥</h1>
+    <p>5 GAMES • NO TRACKING • PURE FUN</p>
+</div>
 
-    <div class="health-bar-container">
-        <div id="healthBar"></div>
-    </div>
-
-    <div class="controls">
-        <select id="diffSelect">
-            <option value="50">Easy (1-50)</option>
-            <option value="100" selected>Medium (1-100)</option>
-            <option value="500">Hard (1-500)</option>
-        </select>
-        <button class="hint-btn" id="hintToggle">HINTS OFF</button>
-    </div>
-
-    <div class="input-wrapper">
-        <input type="number" id="userInput" placeholder="??">
-        <button id="guessBtn">GUESS</button>
-    </div>
-
-    <div id="msg" class="message-box">Pick a number to start!</div>
-
-    <div class="history" id="historyLog"></div>
+<div class="arcade-grid">
     
-    <button id="resetBtn">PLAY AGAIN</button>
+    <div class="game-card">
+        <div class="game-title">1. Guess the Number</div>
+        <div class="display-area" id="guessMsg">Guess 1-100</div>
+        <input type="number" id="guessInput" placeholder="Enter #">
+        <button onclick="playGuess()">GUESS</button>
+        <button class="reset-btn" onclick="resetGuess()">RESET GAME</button>
+    </div>
+
+    <div class="game-card">
+        <div class="game-title">2. 10s Clicker</div>
+        <div class="display-area" id="clickMsg">Score: 0</div>
+        <button style="height: 60px; font-size: 1.5rem;" onclick="countClick()">CLICK ME!</button>
+        <button class="reset-btn" onclick="resetClicker()">START/RESET</button>
+    </div>
+
+    <div class="game-card">
+        <div class="game-title">3. Reaction Test</div>
+        <div id="reactionBox" onclick="clickedReaction()">CLICK TO START</div>
+        <div class="display-area" id="reactMsg">Wait for GREEN</div>
+    </div>
+
+    <div class="game-card">
+        <div class="game-title">4. High Roller</div>
+        <div class="display-area" id="diceMsg">Roll higher than the House!</div>
+        <button onclick="rollDice()">ROLL DICE 🎲</button>
+        <div id="diceResult" style="text-align: center; font-size: 1.2rem;"></div>
+    </div>
+
+    <div class="game-card">
+        <div class="game-title">5. Word Scramble</div>
+        <div class="display-area" id="scrambleWord">Push Reset to Start</div>
+        <input type="text" id="wordInput" placeholder="Your Answer">
+        <button onclick="checkWord()">CHECK</button>
+        <button class="reset-btn" onclick="resetScramble()">NEW WORD</button>
+    </div>
+
 </div>
 
 <script>
-    let secret, lives, maxLives, attempts;
-    let hints = false;
-    let history = [];
-
-    const el = {
-        input: document.getElementById('userInput'),
-        btn: document.getElementById('guessBtn'),
-        reset: document.getElementById('resetBtn'),
-        msg: document.getElementById('msg'),
-        health: document.getElementById('healthBar'),
-        diff: document.getElementById('diffSelect'),
-        hint: document.getElementById('hintToggle'),
-        attempts: document.getElementById('attemptCount'),
-        best: document.getElementById('bestScore'),
-        history: document.getElementById('historyLog')
-    };
-
-    function init() {
-        const range = parseInt(el.diff.value);
-        secret = Math.floor(Math.random() * range) + 1;
-        attempts = 0;
-        history = [];
-        
-        // Dynamic lives based on difficulty
-        maxLives = range === 50 ? 6 : range === 100 ? 8 : 12;
-        lives = maxLives;
-
-        el.best.textContent = localStorage.getItem('guessBest') || '--';
-        el.attempts.textContent = '0';
-        el.msg.textContent = `Guess between 1 and ${range}`;
-        el.msg.className = 'message-box';
-        el.health.style.width = '100%';
-        el.health.style.background = 'linear-gradient(90deg, var(--primary), var(--accent))';
-        el.input.disabled = false;
-        el.btn.disabled = false;
-        el.reset.style.display = 'none';
-        el.history.innerHTML = '';
-        el.input.value = '';
-        el.input.focus();
+    // --- 1. NUMBER GUESS ---
+    let gSecret, gLives;
+    function resetGuess() {
+        gSecret = Math.floor(Math.random() * 100) + 1;
+        gLives = 10;
+        document.getElementById('guessMsg').innerText = "New Game! 1-100 (10 Lives)";
+        document.getElementById('guessInput').value = "";
+    }
+    function playGuess() {
+        let val = parseInt(document.getElementById('guessInput').value);
+        if(!val) return;
+        if(val === gSecret) { document.getElementById('guessMsg').innerText = "🎉 YOU WON!"; }
+        else {
+            gLives--;
+            let hint = val > gSecret ? "Too High" : "Too Low";
+            document.getElementById('guessMsg').innerText = `${hint}! Lives: ${gLives}`;
+            if(gLives <= 0) document.getElementById('guessMsg').innerText = "GAME OVER! It was " + gSecret;
+        }
     }
 
-    function handleGuess() {
-        const val = parseInt(el.input.value);
-        if (isNaN(val) || val < 1 || val > parseInt(el.diff.value)) return;
+    // --- 2. CLICK FAST ---
+    let clicks = 0, timer = null;
+    function countClick() {
+        if(timer === null) return;
+        clicks++;
+        document.getElementById('clickMsg').innerText = "Score: " + clicks;
+    }
+    function resetClicker() {
+        clicks = 0;
+        document.getElementById('clickMsg').innerText = "Get ready...";
+        clearTimeout(timer);
+        setTimeout(() => {
+            document.getElementById('clickMsg').innerText = "GO!";
+            timer = setTimeout(() => {
+                alert("Time up! Score: " + clicks);
+                timer = null;
+            }, 10000);
+        }, 1000);
+    }
 
-        attempts++;
-        lives--;
-        el.attempts.textContent = attempts;
-        updateHealth();
-        addHistory(val);
-
-        if (val === secret) {
-            win();
-        } else if (lives <= 0) {
-            lose();
+    // --- 3. REACTION TEST ---
+    let reactStartTime, reactTimeout;
+    function clickedReaction() {
+        let box = document.getElementById('reactionBox');
+        if(box.style.background === 'green') {
+            let diff = Date.now() - reactStartTime;
+            document.getElementById('reactMsg').innerText = `Time: ${diff}ms`;
+            box.style.background = '#2d3436';
+            box.innerText = "CLICK TO RESTART";
         } else {
-            feedback(val);
-        }
-        el.input.value = '';
-        el.input.focus();
-    }
-
-    function feedback(val) {
-        el.msg.classList.remove('error-shake');
-        void el.msg.offsetWidth; // Trigger reflow
-        el.msg.classList.add('error-shake');
-
-        let hintMsg = val > secret ? "TOO HIGH" : "TOO LOW";
-        
-        if (hints) {
-            const diff = Math.abs(val - secret);
-            if (diff < 5) hintMsg += " (MELTING! 🔥)";
-            else if (diff < 15) hintMsg += " (WARM ☀️)";
-        }
-        el.msg.textContent = hintMsg;
-    }
-
-    function updateHealth() {
-        const perc = (lives / maxLives) * 100;
-        el.health.style.width = perc + '%';
-        if (perc < 30) el.health.style.background = 'var(--danger)';
-    }
-
-    function addHistory(num) {
-        history.unshift(num);
-        if (history.length > 5) history.pop();
-        el.history.innerHTML = history.map(n => `<div class="history-item">${n}</div>`).join('');
-    }
-
-    function win() {
-        el.msg.textContent = `CHAMPION! Got it in ${attempts} tries.`;
-        el.msg.className = 'message-box success-glow';
-        endGame();
-        
-        const currentBest = localStorage.getItem('guessBest');
-        if (!currentBest || attempts < currentBest) {
-            localStorage.setItem('guessBest', attempts);
-            el.best.textContent = attempts + ' (New!)';
+            box.innerText = "WAIT...";
+            box.style.background = 'red';
+            reactTimeout = setTimeout(() => {
+                box.style.background = 'green';
+                box.innerText = "CLICK NOW!";
+                reactStartTime = Date.now();
+            }, Math.random() * 3000 + 2000);
         }
     }
 
-    function lose() {
-        el.msg.textContent = `GAME OVER. It was ${secret}.`;
-        el.msg.style.color = 'var(--danger)';
-        endGame();
+    // --- 4. DICE ROLLER ---
+    function rollDice() {
+        let player = Math.floor(Math.random() * 6) + 1;
+        let house = Math.floor(Math.random() * 6) + 1;
+        let result = player > house ? "WIN!" : (player === house ? "TIE" : "LOSE");
+        document.getElementById('diceMsg').innerText = `You: ${player} vs House: ${house}`;
+        document.getElementById('diceResult').innerText = result;
     }
 
-    function endGame() {
-        el.input.disabled = true;
-        el.btn.disabled = true;
-        el.reset.style.display = 'block';
+    // --- 5. WORD SCRAMBLE ---
+    const words = ["ARCADE", "WINNER", "YELLOW", "GAMING", "PIXELS"];
+    let currentWord = "";
+    function resetScramble() {
+        currentWord = words[Math.floor(Math.random() * words.length)];
+        let scrambled = currentWord.split('').sort(() => 0.5 - Math.random()).join('');
+        document.getElementById('scrambleWord').innerText = scrambled;
+        document.getElementById('wordInput').value = "";
+    }
+    function checkWord() {
+        let val = document.getElementById('wordInput').value.toUpperCase();
+        if(val === currentWord) document.getElementById('scrambleWord').innerText = "✅ CORRECT!";
+        else document.getElementById('scrambleWord').innerText = "❌ TRY AGAIN";
     }
 
-    el.btn.onclick = handleGuess;
-    el.reset.onclick = init;
-    el.diff.onchange = init;
-    el.hint.onclick = () => {
-        hints = !hints;
-        el.hint.textContent = hints ? 'HINTS ON' : 'HINTS OFF';
-        el.hint.classList.toggle('active');
-    };
-    el.input.onkeydown = (e) => e.key === 'Enter' && handleGuess();
-
-    init();
+    // Init All
+    resetGuess();
+    resetScramble();
 </script>
+
 </body>
 </html>
+
